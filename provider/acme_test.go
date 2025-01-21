@@ -27,7 +27,7 @@ func TestAcme(t *testing.T) {
 	assert.Equal(t, "SG", hotels[0].Country)
 	assert.Equal(t, "098269", hotels[0].PostalCode)
 	assert.Equal(t, "This 5 star hotel is located on the coastline of Singapore.", hotels[0].Description)
-	assert.Equal(t, []string{"Pool", "BusinessCenter", "WiFi", "DryCleaning", "Breakfast"}, hotels[0].Amenities)
+	assert.Equal(t, []string{"pool", "businesscenter", "wifi", "drycleaning", "breakfast"}, hotels[0].Amenities)
 
 	assert.Equal(t, "SjyX", hotels[1].ID)
 	assert.Equal(t, 5432, hotels[1].DestinationID)
@@ -39,7 +39,7 @@ func TestAcme(t *testing.T) {
 	assert.Equal(t, "SG", hotels[1].Country)
 	assert.Equal(t, "238909", hotels[1].PostalCode)
 	assert.Equal(t, "Enjoy sophisticated waterfront living at the new InterContinental® Singapore Robertson Quay, luxury's preferred address nestled in the heart of Robertson Quay along the Singapore River, with the CBD just five minutes drive away. Magnifying the comforts of home, each of our 225 studios and suites features a host of thoughtful amenities that combine modernity with elegance, whilst maintaining functional practicality. The hotel also features a chic, luxurious Club InterContinental Lounge.", hotels[1].Description)
-	assert.Equal(t, []string{"Pool", "WiFi", "Aircon", "BusinessCenter", "BathTub", "Breakfast", "DryCleaning", "Bar"}, hotels[1].Amenities)
+	assert.Equal(t, []string{"pool", "wifi", "aircon", "businesscenter", "bathtub", "breakfast", "drycleaning", "bar"}, hotels[1].Amenities)
 
 	assert.Equal(t, "f8c9", hotels[2].ID)
 	assert.Equal(t, 1122, hotels[2].DestinationID)
@@ -51,5 +51,5 @@ func TestAcme(t *testing.T) {
 	assert.Equal(t, "JP", hotels[2].Country)
 	assert.Equal(t, "160-0023", hotels[2].PostalCode)
 	assert.Equal(t, "Hilton Tokyo is located in Shinjuku, the heart of Tokyo's business, shopping and entertainment district, and is an ideal place to experience modern Japan. A complimentary shuttle operates between the hotel and Shinjuku station and the Tokyo Metro subway is connected to the hotel. Relax in one of the modern Japanese-style rooms and admire stunning city views. The hotel offers WiFi and internet access throughout all rooms and public space.", hotels[2].Description)
-	assert.Equal(t, []string{"Pool", "WiFi", "BusinessCenter", "DryCleaning", "Breakfast", "Bar", "BathTub"}, hotels[2].Amenities)
+	assert.Equal(t, []string{"pool", "wifi", "businesscenter", "drycleaning", "breakfast", "bar", "bathtub"}, hotels[2].Amenities)
 }

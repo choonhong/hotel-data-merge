@@ -148,11 +148,11 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*ent.Hotel) ([]*ent.Hot
 		mergedHotel := &ent.Hotel{
 			ID:                hotels[0].ID,
 			DestinationID:     hotels[0].DestinationID,
-			Name:              findMostAverageString(names),
+			Name:              FindMostAverageString(names),
 			Address:           longestAddress,
-			City:              findMostAverageString(cities),
-			Country:           findMostAverageString(countries),
-			PostalCode:        findMostAverageString(postalCodes),
+			City:              FindMostAverageString(cities),
+			Country:           FindMostAverageString(countries),
+			PostalCode:        FindMostAverageString(postalCodes),
 			Description:       description,
 			Amenities:         getUniqueStrings(amenities),
 			Images:            mergedImages,
@@ -177,18 +177,14 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*ent.Hotel) ([]*ent.Hot
 	return unifiedHotels, nil
 }
 
-// findMostAverageString combines multiple strings into one, returning the most average string
-func findMostAverageString(strs []string) string {
+// FindMostAverageString combines multiple strings into one, returning the most average string
+func FindMostAverageString(strs []string) string {
 	if len(strs) == 0 {
 		return ""
 	}
 
-	if len(strs) == 1 {
-		return strs[0]
-	}
-
-	minTotalDistance := len(strs[0]) * len(strs)
-	averageName := strs[0]
+	minTotalDistance := len(strs[0]) * len(strs) * 100
+	averageString := ""
 
 	for _, str1 := range strs {
 		totalDistance := 0
@@ -199,18 +195,18 @@ func findMostAverageString(strs []string) string {
 			}
 		}
 
-		// no other name to compare
+		// all strings are the same
 		if totalDistance == 0 {
 			return str1
 		}
 
-		if totalDistance < minTotalDistance {
+		if totalDistance < minTotalDistance || (totalDistance == minTotalDistance && len(str1) > len(averageString)) {
 			minTotalDistance = totalDistance
-			averageName = str1
+			averageString = str1
 		}
 	}
 
-	return averageName
+	return averageString
 }
 
 // return a list of unique strings where levenshtein distance is < 3
