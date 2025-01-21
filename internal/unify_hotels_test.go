@@ -16,6 +16,7 @@ import (
 func TestFetchAndMergeHotels(t *testing.T) {
 	db, err := adapter.Connect()
 	require.NoError(t, err)
+	defer db.Close()
 
 	subject := internal.HotelService{
 		HotelRepo: &adapter.HotelRepository{Client: db},

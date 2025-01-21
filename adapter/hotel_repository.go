@@ -33,7 +33,7 @@ func (h *HotelRepository) Save(ctx context.Context, hotels *ent.Hotel) error {
 		create.SetLongitude(*hotels.Longitude)
 	}
 
-	return create.Exec(ctx)
+	return create.OnConflict().UpdateNewValues().Exec(ctx)
 }
 
 func (h *HotelRepository) GetHotels(ctx context.Context, ids []string, destinationID int) ([]*ent.Hotel, error) {
