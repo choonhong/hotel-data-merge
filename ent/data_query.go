@@ -404,7 +404,7 @@ func (dq *DataQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (dq *DataQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (dq *DataQuery) sqlQuery(_ context.Context) *sql.Selector {
 	builder := sql.Dialect(dq.driver.Dialect())
 	t1 := builder.Table(data.Table)
 	columns := dq.ctx.Fields

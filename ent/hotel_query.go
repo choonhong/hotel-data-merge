@@ -404,7 +404,7 @@ func (hq *HotelQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (hq *HotelQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (hq *HotelQuery) sqlQuery(_ context.Context) *sql.Selector {
 	builder := sql.Dialect(hq.driver.Dialect())
 	t1 := builder.Table(hotel.Table)
 	columns := hq.ctx.Fields
