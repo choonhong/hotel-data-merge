@@ -37,7 +37,9 @@ type PatagoniaImage struct {
 	Description string `json:"description"`
 }
 
+// FetchAll fetches all hotels from Patagonia API.
 func (p *Patagonia) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
+	// Call Patagonia API
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.URL, nil)
 	if err != nil {
 		return nil, err
@@ -50,11 +52,13 @@ func (p *Patagonia) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
 	}
 	defer resp.Body.Close()
 
+	// Decode the response body
 	var data []*PatagoniaData
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 		return nil, fmt.Errorf("Decode: %w", err)
 	}
 
+	// Parse data to internal Hotel model
 	var hotels []*ent.Hotel
 	for _, d := range data {
 		hotel := &ent.Hotel{

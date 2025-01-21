@@ -14,20 +14,33 @@ type HotelService struct {
 	Providers []Provider
 }
 
+// FetchAndMergeHotels fetches hotels from all providers and merges them into a single hotel list.
 func (s *HotelService) FetchAndMergeHotels(ctx context.Context) ([]*ent.Hotel, error) {
+	// Fetch hotels from all providers
 	hotelMap, err := s.fetchHotels(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("fetchHotels: %w", err)
 	}
 
+	// Merge hotels with the same ID
 	hotels, err := s.mergeHotels(hotelMap)
 	if err != nil {
 		return nil, fmt.Errorf("mergeHotels: %w", err)
 	}
 
+	// Save merged hotels
+	for _, hotel := range hotels {
+		fmt.Println("Merged hotel " + hotel.ID)
+
+		if err := s.HotelRepo.Save(context.Background(), hotel); err != nil {
+			return nil, fmt.Errorf("Save: %w", err)
+		}
+	}
+
 	return hotels, nil
 }
 
+// fetchHotels fetches hotels from all providers and groups them by ID.
 func (s *HotelService) fetchHotels(ctx context.Context) (map[string][]*ent.Hotel, error) {
 	hotelMap := map[string][]*ent.Hotel{}
 
@@ -53,6 +66,7 @@ func (s *HotelService) fetchHotels(ctx context.Context) (map[string][]*ent.Hotel
 	return hotelMap, nil
 }
 
+// mergeHotels merges hotels with the same ID into a single hotel list.
 func (s *HotelService) mergeHotels(hotelMap map[string][]*ent.Hotel) ([]*ent.Hotel, error) {
 	fmt.Println("Merging hotels...")
 
@@ -65,6 +79,7 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*ent.Hotel) ([]*ent.Hot
 			continue
 		}
 
+		// Prepare data for merging
 		names := []string{}
 		latitudes := []float64{}
 		longitudes := []float64{}
@@ -117,11 +132,13 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*ent.Hotel) ([]*ent.Hot
 			}
 		}
 
+		// Merge image by URL
 		mergedImages := []schema.Image{}
 		for _, image := range uniqueImages {
 			mergedImages = append(mergedImages, image)
 		}
 
+		// Merge booking conditions by uniqueness
 		mergedBookingConditions := []string{}
 		for condition := range uniqueBookingConditions {
 			mergedBookingConditions = append(mergedBookingConditions, condition)
@@ -142,26 +159,19 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*ent.Hotel) ([]*ent.Hot
 			BookingConditions: mergedBookingConditions,
 		}
 
+		// Calculate average latitude
 		if len(latitudes) > 0 {
 			average := calculateAverage(latitudes)
 			mergedHotel.Latitude = &average
 		}
 
+		// Calculate average longitude
 		if len(longitudes) > 0 {
 			average := calculateAverage(longitudes)
 			mergedHotel.Longitude = &average
 		}
 
 		unifiedHotels = append(unifiedHotels, mergedHotel)
-	}
-
-	// Save merged hotels to the hotel repository
-	for _, hotel := range unifiedHotels {
-		fmt.Println("Saving hotel " + hotel.ID)
-
-		if err := s.HotelRepo.Save(context.Background(), hotel); err != nil {
-			return nil, fmt.Errorf("Save: %w", err)
-		}
 	}
 
 	return unifiedHotels, nil

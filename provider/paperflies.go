@@ -41,7 +41,9 @@ type PaperfliesImage struct {
 	Caption string `json:"caption"`
 }
 
+// FetchAll fetches all hotels from Paperflies API.
 func (p *Paperflies) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
+	// Call Paperflies API
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.URL, nil)
 	if err != nil {
 		return nil, err
@@ -54,11 +56,13 @@ func (p *Paperflies) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
 	}
 	defer resp.Body.Close()
 
+	// Decode the response body
 	var data []*PaperfliesData
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 		return nil, fmt.Errorf("Decode: %w", err)
 	}
 
+	// Parse data to internal Hotel model
 	var hotels []*ent.Hotel
 	for _, d := range data {
 		hotel := &ent.Hotel{
