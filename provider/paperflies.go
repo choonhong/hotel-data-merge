@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/choonhong/hotel-data-merge/model"
+	"github.com/choonhong/hotel-data-merge/ent"
+	"github.com/choonhong/hotel-data-merge/ent/schema"
 )
 
 type Paperflies struct {
@@ -40,7 +41,7 @@ type PaperfliesImage struct {
 	Caption string `json:"caption"`
 }
 
-func (p *Paperflies) FetchAll(ctx context.Context) ([]*model.Hotel, error) {
+func (p *Paperflies) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.URL, nil)
 	if err != nil {
 		return nil, err
@@ -58,9 +59,9 @@ func (p *Paperflies) FetchAll(ctx context.Context) ([]*model.Hotel, error) {
 		return nil, fmt.Errorf("Decode: %w", err)
 	}
 
-	var hotels []*model.Hotel
+	var hotels []*ent.Hotel
 	for _, d := range data {
-		hotel := &model.Hotel{
+		hotel := &ent.Hotel{
 			ID:                d.ID,
 			DestinationID:     d.DestinationID,
 			Name:              strings.TrimSpace(d.Name),
@@ -68,7 +69,7 @@ func (p *Paperflies) FetchAll(ctx context.Context) ([]*model.Hotel, error) {
 			Country:           strings.TrimSpace(d.Location.Country),
 			Description:       strings.TrimSpace(d.Details),
 			Amenities:         []string{},
-			Images:            []model.Image{},
+			Images:            []schema.Image{},
 			BookingConditions: d.BookingConditions,
 		}
 
@@ -78,7 +79,7 @@ func (p *Paperflies) FetchAll(ctx context.Context) ([]*model.Hotel, error) {
 
 		for category, images := range d.Images {
 			for _, image := range images {
-				hotel.Images = append(hotel.Images, model.Image{URL: image.Link, Description: image.Caption, Category: category})
+				hotel.Images = append(hotel.Images, schema.Image{URL: image.Link, Description: image.Caption, Category: category})
 			}
 		}
 

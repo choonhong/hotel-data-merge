@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/agext/levenshtein"
-	"github.com/choonhong/hotel-data-merge/model"
-	"github.com/davecgh/go-spew/spew"
+	"github.com/choonhong/hotel-data-merge/ent"
+	"github.com/choonhong/hotel-data-merge/ent/schema"
 )
 
 type HotelService struct {
@@ -14,7 +14,7 @@ type HotelService struct {
 	Providers []Provider
 }
 
-func (s *HotelService) FetchAndMergeHotels(ctx context.Context) ([]*model.Hotel, error) {
+func (s *HotelService) FetchAndMergeHotels(ctx context.Context) ([]*ent.Hotel, error) {
 	hotelMap, err := s.fetchHotels(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("fetchHotels: %w", err)
@@ -28,8 +28,8 @@ func (s *HotelService) FetchAndMergeHotels(ctx context.Context) ([]*model.Hotel,
 	return hotels, nil
 }
 
-func (s *HotelService) fetchHotels(ctx context.Context) (map[string][]*model.Hotel, error) {
-	hotelMap := map[string][]*model.Hotel{}
+func (s *HotelService) fetchHotels(ctx context.Context) (map[string][]*ent.Hotel, error) {
+	hotelMap := map[string][]*ent.Hotel{}
 
 	// Fetch hotels from all providers
 	for _, provider := range s.Providers {
@@ -43,7 +43,7 @@ func (s *HotelService) fetchHotels(ctx context.Context) (map[string][]*model.Hot
 		// Group hotels by ID
 		for _, hotel := range hotels {
 			if _, ok := hotelMap[hotel.ID]; !ok {
-				hotelMap[hotel.ID] = []*model.Hotel{}
+				hotelMap[hotel.ID] = []*ent.Hotel{}
 			}
 
 			hotelMap[hotel.ID] = append(hotelMap[hotel.ID], hotel)
@@ -53,10 +53,10 @@ func (s *HotelService) fetchHotels(ctx context.Context) (map[string][]*model.Hot
 	return hotelMap, nil
 }
 
-func (s *HotelService) mergeHotels(hotelMap map[string][]*model.Hotel) ([]*model.Hotel, error) {
+func (s *HotelService) mergeHotels(hotelMap map[string][]*ent.Hotel) ([]*ent.Hotel, error) {
 	fmt.Println("Merging hotels...")
 
-	unifiedHotels := []*model.Hotel{}
+	unifiedHotels := []*ent.Hotel{}
 
 	// Merge hotels with the same ID
 	for _, hotels := range hotelMap {
@@ -73,8 +73,8 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*model.Hotel) ([]*model
 		countries := []string{}
 		postalCodes := []string{}
 		description := ""
-		uniqueAmenities := map[string]bool{}
-		uniqueImages := map[string]model.Image{}
+		amenities := []string{}
+		uniqueImages := map[string]schema.Image{}
 		uniqueBookingConditions := map[string]bool{}
 
 		for _, hotel := range hotels {
@@ -96,6 +96,7 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*model.Hotel) ([]*model
 			if hotel.PostalCode != "" {
 				postalCodes = append(postalCodes, hotel.PostalCode)
 			}
+			amenities = append(amenities, hotel.Amenities...)
 
 			// Find the longest address
 			if len(hotel.Address) > len(longestAddress) {
@@ -104,11 +105,6 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*model.Hotel) ([]*model
 
 			// Combine descriptions
 			description += hotel.Description
-
-			// Combine amenities
-			for _, amenity := range hotel.Amenities {
-				uniqueAmenities[amenity] = true
-			}
 
 			// Combine images
 			for _, image := range hotel.Images {
@@ -121,12 +117,7 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*model.Hotel) ([]*model
 			}
 		}
 
-		mergedAmenities := []string{}
-		for amenity := range uniqueAmenities {
-			mergedAmenities = append(mergedAmenities, amenity)
-		}
-
-		mergedImages := []model.Image{}
+		mergedImages := []schema.Image{}
 		for _, image := range uniqueImages {
 			mergedImages = append(mergedImages, image)
 		}
@@ -137,7 +128,7 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*model.Hotel) ([]*model
 		}
 
 		// Merge hotels with the same ID
-		mergedHotel := &model.Hotel{
+		mergedHotel := &ent.Hotel{
 			ID:                hotels[0].ID,
 			DestinationID:     hotels[0].DestinationID,
 			Name:              findMostAverageString(names),
@@ -146,7 +137,7 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*model.Hotel) ([]*model
 			Country:           findMostAverageString(countries),
 			PostalCode:        findMostAverageString(postalCodes),
 			Description:       description,
-			Amenities:         mergedAmenities,
+			Amenities:         getUniqueStrings(amenities),
 			Images:            mergedImages,
 			BookingConditions: mergedBookingConditions,
 		}
@@ -164,11 +155,13 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*model.Hotel) ([]*model
 		unifiedHotels = append(unifiedHotels, mergedHotel)
 	}
 
-	spew.Dump(unifiedHotels)
-
 	// Save merged hotels to the hotel repository
-	if err := s.HotelRepo.SaveAll(unifiedHotels); err != nil {
-		return nil, fmt.Errorf("SaveAll: %w", err)
+	for _, hotel := range unifiedHotels {
+		fmt.Println("Saving hotel " + hotel.ID)
+
+		if err := s.HotelRepo.Save(context.Background(), hotel); err != nil {
+			return nil, fmt.Errorf("Save: %w", err)
+		}
 	}
 
 	return unifiedHotels, nil
@@ -185,7 +178,7 @@ func findMostAverageString(strs []string) string {
 	}
 
 	minTotalDistance := len(strs[0]) * len(strs)
-	averageName := ""
+	averageName := strs[0]
 
 	for _, str1 := range strs {
 		totalDistance := 0
@@ -208,6 +201,28 @@ func findMostAverageString(strs []string) string {
 	}
 
 	return averageName
+}
+
+// return a list of unique strings where levenshtein distance is < 3
+func getUniqueStrings(strs []string) []string {
+	uniqueStrs := []string{}
+
+	for _, str1 := range strs {
+		unique := true
+
+		for _, str2 := range uniqueStrs {
+			if levenshtein.Distance(str1, str2, nil) < 3 {
+				unique = false
+				break
+			}
+		}
+
+		if unique {
+			uniqueStrs = append(uniqueStrs, str1)
+		}
+	}
+
+	return uniqueStrs
 }
 
 func calculateAverage(list []float64) float64 {

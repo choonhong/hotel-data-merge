@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/choonhong/hotel-data-merge/model"
+	"github.com/choonhong/hotel-data-merge/ent"
+	"github.com/choonhong/hotel-data-merge/ent/schema"
 )
 
 type Patagonia struct {
@@ -36,7 +37,7 @@ type PatagoniaImage struct {
 	Description string `json:"description"`
 }
 
-func (p *Patagonia) FetchAll(ctx context.Context) ([]*model.Hotel, error) {
+func (p *Patagonia) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.URL, nil)
 	if err != nil {
 		return nil, err
@@ -54,9 +55,9 @@ func (p *Patagonia) FetchAll(ctx context.Context) ([]*model.Hotel, error) {
 		return nil, fmt.Errorf("Decode: %w", err)
 	}
 
-	var hotels []*model.Hotel
+	var hotels []*ent.Hotel
 	for _, d := range data {
-		hotel := &model.Hotel{
+		hotel := &ent.Hotel{
 			ID:            d.ID,
 			DestinationID: d.DestinationID,
 			Name:          strings.TrimSpace(d.Name),
@@ -68,12 +69,12 @@ func (p *Patagonia) FetchAll(ctx context.Context) ([]*model.Hotel, error) {
 			PostalCode:    "",
 			Description:   strings.TrimSpace(d.Info),
 			Amenities:     trimSpaceInList(d.Amenities),
-			Images:        []model.Image{},
+			Images:        []schema.Image{},
 		}
 
 		for category, images := range d.Images {
 			for _, image := range images {
-				hotel.Images = append(hotel.Images, model.Image{URL: image.URL, Description: image.Description, Category: category})
+				hotel.Images = append(hotel.Images, schema.Image{URL: image.URL, Description: image.Description, Category: category})
 			}
 		}
 

@@ -1,20 +1,28 @@
 package adapter
 
 import (
+	"context"
 	"fmt"
+	"log"
 
-	"github.com/choonhong/hotel-data-merge/model"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	"entgo.io/ent/dialect"
+	"github.com/choonhong/hotel-data-merge/ent"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-func Connect() (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
+func Connect() (*ent.Client, error) {
+	// Create an ent.Client with in-memory SQLite database.
+	client, err := ent.Open(dialect.SQLite, "file:ent?mode=memory&cache=shared&_fk=1")
 	if err != nil {
-		return nil, err
+		log.Fatalf("failed opening connection to sqlite: %v", err)
 	}
 
-	fmt.Println("connect to database successfully")
+	fmt.Println("Connected to sqlite")
 
-	return db, db.AutoMigrate(&model.Hotel{})
+	// Run the automatic migration tool to create all schema resources.
+	if err := client.Schema.Create(context.Background()); err != nil {
+		log.Fatalf("failed creating schema resources: %v", err)
+	}
+
+	return client, nil
 }

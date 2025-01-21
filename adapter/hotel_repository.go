@@ -1,42 +1,51 @@
 package adapter
 
 import (
-	"github.com/choonhong/hotel-data-merge/model"
-	"gorm.io/gorm"
+	"context"
+
+	"github.com/choonhong/hotel-data-merge/ent"
+	"github.com/choonhong/hotel-data-merge/ent/hotel"
 )
 
 type HotelRepository struct {
-	*gorm.DB
+	*ent.Client
 }
 
-func (h *HotelRepository) SaveAll(hotels []*model.Hotel) error {
-	return h.Create(hotels).Error
+func (h *HotelRepository) Save(ctx context.Context, hotels *ent.Hotel) error {
+	create := h.Client.Hotel.Create().
+		SetID(hotels.ID).
+		SetDestinationID(hotels.DestinationID).
+		SetName(hotels.Name).
+		SetAddress(hotels.Address).
+		SetCity(hotels.City).
+		SetCountry(hotels.Country).
+		SetPostalCode(hotels.PostalCode).
+		SetDescription(hotels.Description).
+		SetAmenities(hotels.Amenities).
+		SetImages(hotels.Images).
+		SetBookingConditions(hotels.BookingConditions)
+
+	if hotels.Latitude != nil {
+		create.SetLatitude(*hotels.Latitude)
+	}
+
+	if hotels.Longitude != nil {
+		create.SetLongitude(*hotels.Longitude)
+	}
+
+	return create.Exec(ctx)
 }
 
-func (h *HotelRepository) GetAll() ([]*model.Hotel, error) {
-	var hotels []*model.Hotel
-	err := h.Find(&hotels).Error
+func (h *HotelRepository) GetHotels(ctx context.Context, ids []string, destinationID int) ([]*ent.Hotel, error) {
+	query := h.Client.Hotel.Query()
 
-	return hotels, err
-}
+	if len(ids) != 0 {
+		query = query.Where(hotel.IDIn(ids...))
+	}
 
-func (h *HotelRepository) GetByIDs(ids []string) ([]*model.Hotel, error) {
-	var hotels []*model.Hotel
-	err := h.Where("id IN ?", ids).Find(&hotels).Error
+	if destinationID != 0 {
+		query = query.Where(hotel.DestinationIDEQ(destinationID))
+	}
 
-	return hotels, err
-}
-
-func (h *HotelRepository) GetByDestinationID(destinationID int) ([]*model.Hotel, error) {
-	var hotels []*model.Hotel
-	err := h.Where("destination_id = ?", destinationID).Find(&hotels).Error
-
-	return hotels, err
-}
-
-func (h *HotelRepository) GetByIDsAndDestinationID(ids []string, destinationID int) ([]*model.Hotel, error) {
-	var hotels []*model.Hotel
-	err := h.Where("id IN ? AND destination_id = ?", ids, destinationID).Find(&hotels).Error
-
-	return hotels, err
+	return query.All(ctx)
 }

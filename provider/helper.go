@@ -38,7 +38,7 @@ func (f *Float64OrString) UnmarshalJSON(data []byte) error {
 func trimSpaceInList(list []string) []string {
 	var result []string
 	for _, s := range list {
-		result = append(result, strings.TrimSpace(s))
+		result = append(result, strings.TrimSpace(strings.ToLower(s)))
 	}
 	return result
 }

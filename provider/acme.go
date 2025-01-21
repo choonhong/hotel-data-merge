@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/choonhong/hotel-data-merge/model"
+	"github.com/choonhong/hotel-data-merge/ent"
 )
 
 type Acme struct {
@@ -33,7 +33,7 @@ type AcmeData struct {
 	Facilities    []string        `json:"Facilities"`
 }
 
-func (a *Acme) FetchAll(ctx context.Context) ([]*model.Hotel, error) {
+func (a *Acme) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.URL, nil)
 	if err != nil {
 		return nil, err
@@ -51,9 +51,9 @@ func (a *Acme) FetchAll(ctx context.Context) ([]*model.Hotel, error) {
 		return nil, fmt.Errorf("Decode: %w", err)
 	}
 
-	var hotels []*model.Hotel
+	var hotels []*ent.Hotel
 	for _, d := range data {
-		hotels = append(hotels, &model.Hotel{
+		hotels = append(hotels, &ent.Hotel{
 			ID:            d.ID,
 			DestinationID: d.DestinationID,
 			Name:          strings.TrimSpace(d.Name),
