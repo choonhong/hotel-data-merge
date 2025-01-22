@@ -36,15 +36,15 @@ func (h *HotelRepository) Save(ctx context.Context, hotels *ent.Hotel) error {
 	return create.OnConflict().UpdateNewValues().Exec(ctx)
 }
 
-func (h *HotelRepository) GetHotels(ctx context.Context, ids []string, destinationID int) ([]*ent.Hotel, error) {
+func (h *HotelRepository) GetHotels(ctx context.Context, ids *[]string, destinationID *int) ([]*ent.Hotel, error) {
 	query := h.Client.Hotel.Query()
 
-	if len(ids) != 0 {
-		query = query.Where(hotel.IDIn(ids...))
+	if ids != nil {
+		query = query.Where(hotel.IDIn(*ids...))
 	}
 
-	if destinationID != 0 {
-		query = query.Where(hotel.DestinationIDEQ(destinationID))
+	if destinationID != nil {
+		query = query.Where(hotel.DestinationIDEQ(*destinationID))
 	}
 
 	return query.All(ctx)

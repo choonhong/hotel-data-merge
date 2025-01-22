@@ -5,12 +5,13 @@ import (
 	"testing"
 
 	"github.com/choonhong/hotel-data-merge/adapter"
+	"github.com/choonhong/hotel-data-merge/database"
 	"github.com/choonhong/hotel-data-merge/ent"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSave(t *testing.T) {
-	db, err := adapter.Connect()
+	db, err := database.Connect()
 	require.NoError(t, err)
 	defer db.Close()
 
@@ -31,7 +32,7 @@ func TestSave(t *testing.T) {
 }
 
 func TestGetHotels(t *testing.T) {
-	db, err := adapter.Connect()
+	db, err := database.Connect()
 	require.NoError(t, err)
 	defer db.Close()
 
@@ -49,29 +50,29 @@ func TestGetHotels(t *testing.T) {
 	err = subject.Save(context.Background(), &hotel3)
 	require.NoError(t, err)
 
-	hotels, err := subject.GetHotels(context.Background(), nil, 0)
+	hotels, err := subject.GetHotels(context.Background(), nil, nil)
 	require.NoError(t, err)
 	require.Len(t, hotels, 3)
 	require.Equal(t, "Hotel A", hotels[0].Name)
 
-	hotels, err = subject.GetHotels(context.Background(), []string{"1"}, 0)
+	hotels, err = subject.GetHotels(context.Background(), &[]string{"1"}, nil)
 	require.NoError(t, err)
 	require.Len(t, hotels, 1)
 	require.Equal(t, "Hotel A", hotels[0].Name)
 
-	hotels, err = subject.GetHotels(context.Background(), nil, 1)
+	hotels, err = subject.GetHotels(context.Background(), nil, &hotel.DestinationID)
 	require.NoError(t, err)
 	require.Len(t, hotels, 2)
 	require.Equal(t, "Hotel A", hotels[0].Name)
 	require.Equal(t, "Hotel C", hotels[1].Name)
 
-	hotels, err = subject.GetHotels(context.Background(), []string{"1", "2"}, 0)
+	hotels, err = subject.GetHotels(context.Background(), &[]string{"1", "2"}, nil)
 	require.NoError(t, err)
 	require.Len(t, hotels, 2)
 	require.Equal(t, "Hotel A", hotels[0].Name)
 	require.Equal(t, "Hotel B", hotels[1].Name)
 
-	hotels, err = subject.GetHotels(context.Background(), []string{"1", "2"}, 1)
+	hotels, err = subject.GetHotels(context.Background(), &[]string{"1", "2"}, &hotel.DestinationID)
 	require.NoError(t, err)
 	require.Len(t, hotels, 1)
 	require.Equal(t, "Hotel A", hotels[0].Name)

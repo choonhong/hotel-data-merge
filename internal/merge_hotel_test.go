@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/choonhong/hotel-data-merge/adapter"
+	"github.com/choonhong/hotel-data-merge/database"
 	"github.com/choonhong/hotel-data-merge/internal"
 	"github.com/choonhong/hotel-data-merge/provider"
 	"github.com/stretchr/testify/assert"
@@ -14,7 +15,7 @@ import (
 )
 
 func TestFetchAndMergeHotels(t *testing.T) {
-	db, err := adapter.Connect()
+	db, err := database.Connect()
 	require.NoError(t, err)
 	defer db.Close()
 

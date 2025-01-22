@@ -1,0 +1,102 @@
+---
+openapi: 3.0.0
+info:
+  version: 0.1.0
+  title: Hotel API
+servers:
+  - url: https://{hostname}/v1
+    variables:
+      hostname:
+        default: localhost
+
+paths:
+  /hotels:
+    get:
+      summary: Get hotels details
+      parameters:
+        - in: query
+          name: ids
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: destination
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: get hotel details successfully 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hotels'
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    Hotels:
+      type: array
+      items:
+        $ref: '#/components/schemas/Hotel'
+    Hotel:
+      type: object
+      required:
+        - id
+        - destinationId
+        - name
+        - address
+        - city
+        - country
+        - postalCode
+        - description
+        - amenities
+        - images
+        - bookingConditions
+      properties:
+        id:
+          type: string
+        destinationId:
+          type: integer
+        name:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        address:
+          type: string
+        city:
+          type: string 
+        country:
+          type: string
+        postalCode:
+          type: string
+        description:
+          type: string
+        amenities:
+          type: array
+          items:
+            type: string
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+        bookingConditions:
+          type: array
+          items:
+            type: string
+    Image:
+      type: object
+      required:
+        - url
+        - description
+        - category
+      properties:
+        url:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
