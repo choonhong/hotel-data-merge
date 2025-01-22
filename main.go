@@ -22,7 +22,7 @@ func main() {
 	// connect to db
 	db, err := database.Connect()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("failed to connect to db:", err)
 	}
 
 	// create hotel service
@@ -37,7 +37,7 @@ func main() {
 
 	// fetch hotel data on startup
 	if _, err := service.FetchAndMergeHotels(ctx); err != nil {
-		log.Println(err)
+		log.Println("failed to fetch and merge hotels:", err)
 	}
 
 	// fetch hotel data every 15 minutes
@@ -45,7 +45,7 @@ func main() {
 	go func() {
 		for range ticker.C {
 			if _, err := service.FetchAndMergeHotels(ctx); err != nil {
-				log.Println(err)
+				log.Println("failed to fetch and merge hotels:", err)
 			}
 		}
 	}()

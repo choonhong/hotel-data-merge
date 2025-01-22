@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"entgo.io/ent/dialect"
@@ -17,7 +16,7 @@ func Connect() (*ent.Client, error) {
 		log.Fatalf("failed opening connection to sqlite: %v", err)
 	}
 
-	fmt.Println("Connected to sqlite")
+	log.Println("Connected to sqlite")
 
 	// Run the automatic migration tool to create all schema resources.
 	if err := client.Schema.Create(context.Background()); err != nil {

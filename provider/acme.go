@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/choonhong/hotel-data-merge/ent"
+	"github.com/choonhong/hotel-data-merge/utils"
 )
 
 type Acme struct {
@@ -31,6 +32,22 @@ type AcmeData struct {
 	PostalCode    string          `json:"PostalCode"`
 	Description   string          `json:"Description"`
 	Facilities    []string        `json:"Facilities"`
+}
+
+func (d *AcmeData) ToHotel() *ent.Hotel {
+	return &ent.Hotel{
+		ID:            d.ID,
+		DestinationID: d.DestinationID,
+		Name:          strings.TrimSpace(d.Name),
+		Latitude:      d.Latitude.Value,
+		Longitude:     d.Longitude.Value,
+		Address:       strings.TrimSpace(d.Address),
+		City:          strings.TrimSpace(d.City),
+		Country:       strings.TrimSpace(d.Country),
+		PostalCode:    strings.TrimSpace(d.PostalCode),
+		Description:   strings.TrimSpace(d.Description),
+		Amenities:     utils.TrimSpaceInList(d.Facilities),
+	}
 }
 
 // FetchAll fetches all hotels from Acme API.
@@ -57,19 +74,7 @@ func (a *Acme) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
 	// Parse data to internal Hotel model
 	var hotels []*ent.Hotel
 	for _, d := range data {
-		hotels = append(hotels, &ent.Hotel{
-			ID:            d.ID,
-			DestinationID: d.DestinationID,
-			Name:          strings.TrimSpace(d.Name),
-			Latitude:      d.Latitude.Value,
-			Longitude:     d.Longitude.Value,
-			Address:       strings.TrimSpace(d.Address),
-			City:          strings.TrimSpace(d.City),
-			Country:       strings.TrimSpace(d.Country),
-			PostalCode:    strings.TrimSpace(d.PostalCode),
-			Description:   strings.TrimSpace(d.Description),
-			Amenities:     trimSpaceInList(d.Facilities),
-		})
+		hotels = append(hotels, d.ToHotel())
 	}
 
 	return hotels, nil

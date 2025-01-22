@@ -9,6 +9,7 @@ import (
 
 	"github.com/choonhong/hotel-data-merge/ent"
 	"github.com/choonhong/hotel-data-merge/ent/schema"
+	"github.com/choonhong/hotel-data-merge/utils"
 )
 
 type Patagonia struct {
@@ -37,6 +38,28 @@ type PatagoniaImage struct {
 	Description string `json:"description"`
 }
 
+func (p *PatagoniaData) ToHotel() *ent.Hotel {
+	hotel := &ent.Hotel{
+		ID:            p.ID,
+		DestinationID: p.DestinationID,
+		Name:          strings.TrimSpace(p.Name),
+		Latitude:      p.Latitude.Value,
+		Longitude:     p.Longitude.Value,
+		Address:       strings.TrimSpace(p.Address),
+		Description:   strings.TrimSpace(p.Info),
+		Amenities:     utils.TrimSpaceInList(p.Amenities),
+		Images:        []schema.Image{},
+	}
+
+	for category, images := range p.Images {
+		for _, image := range images {
+			hotel.Images = append(hotel.Images, schema.Image{URL: image.URL, Description: image.Description, Category: category})
+		}
+	}
+
+	return hotel
+}
+
 // FetchAll fetches all hotels from Patagonia API.
 func (p *Patagonia) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
 	// Call Patagonia API
@@ -61,25 +84,7 @@ func (p *Patagonia) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
 	// Parse data to internal Hotel model
 	var hotels []*ent.Hotel
 	for _, d := range data {
-		hotel := &ent.Hotel{
-			ID:            d.ID,
-			DestinationID: d.DestinationID,
-			Name:          strings.TrimSpace(d.Name),
-			Latitude:      d.Latitude.Value,
-			Longitude:     d.Longitude.Value,
-			Address:       strings.TrimSpace(d.Address),
-			Description:   strings.TrimSpace(d.Info),
-			Amenities:     trimSpaceInList(d.Amenities),
-			Images:        []schema.Image{},
-		}
-
-		for category, images := range d.Images {
-			for _, image := range images {
-				hotel.Images = append(hotel.Images, schema.Image{URL: image.URL, Description: image.Description, Category: category})
-			}
-		}
-
-		hotels = append(hotels, hotel)
+		hotels = append(hotels, d.ToHotel())
 	}
 
 	return hotels, nil

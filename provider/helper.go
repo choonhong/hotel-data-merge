@@ -3,7 +3,6 @@ package provider
 import (
 	"encoding/json"
 	"strconv"
-	"strings"
 )
 
 // Custom type for Latitude and Longitude
@@ -33,12 +32,4 @@ func (f *Float64OrString) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
-}
-
-func trimSpaceInList(list []string) []string {
-	var result []string
-	for _, s := range list {
-		result = append(result, strings.TrimSpace(strings.ToLower(s)))
-	}
-	return result
 }

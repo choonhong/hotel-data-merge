@@ -9,6 +9,7 @@ import (
 
 	"github.com/choonhong/hotel-data-merge/ent"
 	"github.com/choonhong/hotel-data-merge/ent/schema"
+	"github.com/choonhong/hotel-data-merge/utils"
 )
 
 type Paperflies struct {
@@ -41,6 +42,32 @@ type PaperfliesImage struct {
 	Caption string `json:"caption"`
 }
 
+func (d *PaperfliesData) ToHotel() *ent.Hotel {
+	hotel := &ent.Hotel{
+		ID:                d.ID,
+		DestinationID:     d.DestinationID,
+		Name:              strings.TrimSpace(d.Name),
+		Address:           strings.TrimSpace(d.Location.Address),
+		Country:           strings.TrimSpace(d.Location.Country),
+		Description:       strings.TrimSpace(d.Details),
+		Amenities:         []string{},
+		Images:            []schema.Image{},
+		BookingConditions: d.BookingConditions,
+	}
+
+	for _, amenities := range d.Amenities {
+		hotel.Amenities = append(hotel.Amenities, utils.TrimSpaceInList(amenities)...)
+	}
+
+	for category, images := range d.Images {
+		for _, image := range images {
+			hotel.Images = append(hotel.Images, schema.Image{URL: image.Link, Description: image.Caption, Category: category})
+		}
+	}
+
+	return hotel
+}
+
 // FetchAll fetches all hotels from Paperflies API.
 func (p *Paperflies) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
 	// Call Paperflies API
@@ -65,29 +92,7 @@ func (p *Paperflies) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
 	// Parse data to internal Hotel model
 	var hotels []*ent.Hotel
 	for _, d := range data {
-		hotel := &ent.Hotel{
-			ID:                d.ID,
-			DestinationID:     d.DestinationID,
-			Name:              strings.TrimSpace(d.Name),
-			Address:           strings.TrimSpace(d.Location.Address),
-			Country:           strings.TrimSpace(d.Location.Country),
-			Description:       strings.TrimSpace(d.Details),
-			Amenities:         []string{},
-			Images:            []schema.Image{},
-			BookingConditions: d.BookingConditions,
-		}
-
-		for _, amenities := range d.Amenities {
-			hotel.Amenities = append(hotel.Amenities, trimSpaceInList(amenities)...)
-		}
-
-		for category, images := range d.Images {
-			for _, image := range images {
-				hotel.Images = append(hotel.Images, schema.Image{URL: image.Link, Description: image.Caption, Category: category})
-			}
-		}
-
-		hotels = append(hotels, hotel)
+		hotels = append(hotels, d.ToHotel())
 	}
 
 	return hotels, nil

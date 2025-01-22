@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/choonhong/hotel-data-merge/ent"
 	"github.com/choonhong/hotel-data-merge/ent/schema"
@@ -15,71 +16,69 @@ type HotelService struct {
 }
 
 // FetchAndMergeHotels fetches hotels from all providers and merges them into a single hotel list.
-func (s *HotelService) FetchAndMergeHotels(ctx context.Context) ([]*ent.Hotel, error) {
+func (s *HotelService) FetchAndMergeHotels(ctx context.Context) (map[string]*ent.Hotel, error) {
 	// Fetch hotels from all providers
-	hotelMap, err := s.fetchHotels(ctx)
+	allHotels, err := s.fetchHotels(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("fetchHotels: %w", err)
 	}
 
-	// Merge hotels with the same ID
-	hotels, err := s.mergeHotels(hotelMap)
-	if err != nil {
-		return nil, fmt.Errorf("mergeHotels: %w", err)
-	}
+	// Merge hotel of the same ID
+	mergedHotels := MergeHotels(allHotels)
 
-	fmt.Println("Saving merged hotels...")
+	log.Println("Saving", len(mergedHotels), "hotels...")
 
 	// Save merged hotels
-	for _, hotel := range hotels {
-		fmt.Println("Merged hotel " + hotel.ID)
-
+	for _, hotel := range mergedHotels {
 		if err := s.HotelRepo.Save(context.Background(), hotel); err != nil {
 			return nil, fmt.Errorf("Save: %w", err)
 		}
 	}
 
-	fmt.Println("Fetch and merge hotels completed.")
+	log.Println("Fetch and merge hotels completed.")
 
-	return hotels, nil
+	return mergedHotels, nil
 }
 
 // fetchHotels fetches hotels from all providers and groups them by ID.
-func (s *HotelService) fetchHotels(ctx context.Context) (map[string][]*ent.Hotel, error) {
-	hotelMap := map[string][]*ent.Hotel{}
+func (s *HotelService) fetchHotels(ctx context.Context) ([]*ent.Hotel, error) {
+	allHotels := []*ent.Hotel{}
 
 	// Fetch hotels from all providers
 	for _, provider := range s.Providers {
-		fmt.Println("Fetching hotels from ", provider.Name())
+		log.Println("Fetching hotels from", provider.Name())
 
 		hotels, err := provider.FetchAll(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("FetchAll: %w", err)
+			// Log error and continue to the next provider
+			log.Println("Error fetching hotels from", provider.Name(), ":", err)
+			continue
 		}
 
-		// Group hotels by ID
-		for _, hotel := range hotels {
-			if _, ok := hotelMap[hotel.ID]; !ok {
-				hotelMap[hotel.ID] = []*ent.Hotel{}
-			}
-
-			hotelMap[hotel.ID] = append(hotelMap[hotel.ID], hotel)
-		}
+		allHotels = append(allHotels, hotels...)
 	}
 
-	return hotelMap, nil
+	return allHotels, nil
 }
 
-// mergeHotels merges hotels with the same ID into a single hotel list.
-func (s *HotelService) mergeHotels(hotelMap map[string][]*ent.Hotel) ([]*ent.Hotel, error) {
-	fmt.Println("Merging hotels...")
+// MergeHotels merges hotels with the same ID into a single hotel list.
+func MergeHotels(hotels []*ent.Hotel) map[string]*ent.Hotel {
+	log.Println("Merging hotels...")
 
-	unifiedHotels := []*ent.Hotel{}
+	hotelMap := map[string][]*ent.Hotel{}
+	for _, hotel := range hotels {
+		if _, ok := hotelMap[hotel.ID]; !ok {
+			hotelMap[hotel.ID] = []*ent.Hotel{}
+		}
+		hotelMap[hotel.ID] = append(hotelMap[hotel.ID], hotel)
+	}
+
+	unifiedHotels := map[string]*ent.Hotel{}
 
 	// Merge hotels with the same ID
 	for _, hotels := range hotelMap {
 		if len(hotels) == 1 {
-			unifiedHotels = append(unifiedHotels, hotels[0])
+			unifiedHotels[hotels[0].ID] = hotels[0]
 			continue
 		}
 
@@ -152,31 +151,31 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*ent.Hotel) ([]*ent.Hot
 		mergedHotel := &ent.Hotel{
 			ID:                hotels[0].ID,
 			DestinationID:     hotels[0].DestinationID,
-			Name:              utils.FindMostAverageString(names),
+			Name:              utils.FindMostRepresentativeString(names),
 			Address:           longestAddress,
-			City:              utils.FindMostAverageString(cities),
-			Country:           utils.FindMostAverageString(countries),
-			PostalCode:        utils.FindMostAverageString(postalCodes),
+			City:              utils.FindMostRepresentativeString(cities),
+			Country:           utils.FindMostRepresentativeString(countries),
+			PostalCode:        utils.FindMostRepresentativeString(postalCodes),
 			Description:       description,
-			Amenities:         utils.GetUniqueStrings(amenities),
+			Amenities:         utils.RemoveSimilarAndSubstrings(amenities),
 			Images:            mergedImages,
 			BookingConditions: mergedBookingConditions,
 		}
 
 		// Calculate average latitude
 		if len(latitudes) > 0 {
-			average := utils.CalculateAverage(latitudes)
-			mergedHotel.Latitude = &average
+			mergedHotel.Latitude = utils.CalculateAverage(latitudes)
 		}
 
 		// Calculate average longitude
 		if len(longitudes) > 0 {
-			average := utils.CalculateAverage(longitudes)
-			mergedHotel.Longitude = &average
+			mergedHotel.Longitude = utils.CalculateAverage(longitudes)
 		}
 
-		unifiedHotels = append(unifiedHotels, mergedHotel)
+		unifiedHotels[mergedHotel.ID] = mergedHotel
+
+		log.Println("Merged hotel", mergedHotel.ID)
 	}
 
-	return unifiedHotels, nil
+	return unifiedHotels
 }
