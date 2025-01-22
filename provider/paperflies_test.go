@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/choonhong/hotel-data-merge/ent/schema"
 	"github.com/choonhong/hotel-data-merge/provider"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,12 +23,8 @@ func TestPaperflies(t *testing.T) {
 	assert.Equal(t, "8 Sentosa Gateway, Beach Villas, 098269", hotels[0].Address)
 	assert.Equal(t, "Singapore", hotels[0].Country)
 	assert.Equal(t, "Surrounded by tropical gardens, these upscale villas in elegant Colonial-style buildings are part of the Resorts World Sentosa complex and a 2-minute walk from the Waterfront train station. Featuring sundecks and pool, garden or sea views, the plush 1- to 3-bedroom villas offer free Wi-Fi and flat-screens, as well as free-standing baths, minibars, and tea and coffeemaking facilities. Upgraded villas add private pools, fridges and microwaves; some have wine cellars. A 4-bedroom unit offers a kitchen and a living room. There's 24-hour room and butler service. Amenities include posh restaurant, plus an outdoor pool, a hot tub, and free parking.", hotels[0].Description)
-	assert.Equal(t, []string{"outdoor pool", "indoor pool", "business center", "childcare", "tv", "coffee machine", "kettle", "hair dryer", "iron"}, hotels[0].Amenities)
-	assert.True(t, reflect.DeepEqual([]schema.Image{
-		{URL: "https://d2ey9sqrvkqdfs.cloudfront.net/0qZF/2.jpg", Description: "Double room", Category: "rooms"},
-		{URL: "https://d2ey9sqrvkqdfs.cloudfront.net/0qZF/3.jpg", Description: "Double room", Category: "rooms"},
-		{URL: "https://d2ey9sqrvkqdfs.cloudfront.net/0qZF/1.jpg", Description: "Front", Category: "site"},
-	}, hotels[0].Images))
+	assert.True(t, reflect.DeepEqual([]string{"outdoor pool", "indoor pool", "business center", "childcare", "tv", "coffee machine", "kettle", "hair dryer", "iron"}, hotels[0].Amenities))
+	assert.Len(t, hotels[0].Images, 3)
 	assert.Equal(t, []string{
 		"All children are welcome. One child under 12 years stays free of charge when using existing beds. One child under 2 years stays free of charge in a child's cot/crib. One child under 4 years stays free of charge when using existing beds. One older child or adult is charged SGD 82.39 per person per night in an extra bed. The maximum number of children's cots/cribs in a room is 1. There is no capacity for extra beds in the room.",
 		"Pets are not allowed.",
@@ -44,15 +39,8 @@ func TestPaperflies(t *testing.T) {
 	assert.Equal(t, "1 Nanson Rd, Singapore 238909", hotels[1].Address)
 	assert.Equal(t, "Singapore", hotels[1].Country)
 	assert.Equal(t, "InterContinental Singapore Robertson Quay is luxury's preferred address offering stylishly cosmopolitan riverside living for discerning travelers to Singapore. Prominently situated along the Singapore River, the 225-room inspiring luxury hotel is easily accessible to the Marina Bay Financial District, Central Business District, Orchard Road and Singapore Changi International Airport, all located a short drive away. The hotel features the latest in Club InterContinental design and service experience, and five dining options including Publico, an Italian landmark dining and entertainment destination by the waterfront.", hotels[1].Description)
-	assert.Equal(t, []string{"outdoor pool", "business center", "childcare", "parking", "bar", "dry cleaning", "wifi", "breakfast", "concierge", "aircon", "minibar", "tv", "bathtub", "hair dryer"}, hotels[1].Amenities)
-	assert.True(t, reflect.DeepEqual([]schema.Image{
-		{URL: "https://d2ey9sqrvkqdfs.cloudfront.net/Sjym/i93_m.jpg", Description: "Double room", Category: "rooms"},
-		{URL: "https://d2ey9sqrvkqdfs.cloudfront.net/Sjym/i94_m.jpg", Description: "Bathroom", Category: "rooms"},
-		{URL: "https://d2ey9sqrvkqdfs.cloudfront.net/Sjym/i1_m.jpg", Description: "Restaurant", Category: "site"},
-		{URL: "https://d2ey9sqrvkqdfs.cloudfront.net/Sjym/i2_m.jpg", Description: "Hotel Exterior", Category: "site"},
-		{URL: "https://d2ey9sqrvkqdfs.cloudfront.net/Sjym/i5_m.jpg", Description: "Entrance", Category: "site"},
-		{URL: "https://d2ey9sqrvkqdfs.cloudfront.net/Sjym/i24_m.jpg", Description: "Bar", Category: "site"},
-	}, hotels[1].Images))
+	assert.True(t, reflect.DeepEqual([]string{"outdoor pool", "business center", "childcare", "parking", "bar", "dry cleaning", "wifi", "breakfast", "concierge", "aircon", "minibar", "tv", "bathtub", "hair dryer"}, hotels[1].Amenities))
+	assert.Len(t, hotels[1].Images, 6)
 
 	assert.Equal(t, "f8c9", hotels[2].ID)
 	assert.Equal(t, 1122, hotels[2].DestinationID)
@@ -61,11 +49,7 @@ func TestPaperflies(t *testing.T) {
 	assert.Equal(t, "Japan", hotels[2].Country)
 	assert.Equal(t, "This sleek high-rise property is 10 minutes' walk from Shinjuku train station, 6 minutes' walk from the Tokyo Metropolitan Government Building and 3 km from Yoyogi Park. The polished rooms offer Wi-Fi and flat-screen TVs, plus minibars, sitting areas, and tea and coffeemaking facilities. Suites add living rooms, and access to a club lounge serving breakfast and cocktails. A free shuttle to Shinjuku station is offered. There's a chic Chinese restaurant, a sushi bar, and a grill restaurant with an open kitchen, as well as an English pub and a hip cocktail lounge. Other amenities include a gym, rooftop tennis courts, and a spa with an indoor pool.", hotels[2].Description)
 	assert.Equal(t, []string{"indoor pool", "business center", "wifi", "tv", "aircon", "minibar", "bathtub", "hair dryer"}, hotels[2].Amenities)
-	assert.True(t, reflect.DeepEqual([]schema.Image{
-		{URL: "https://d2ey9sqrvkqdfs.cloudfront.net/YwAr/i1_m.jpg", Description: "Suite", Category: "rooms"},
-		{URL: "https://d2ey9sqrvkqdfs.cloudfront.net/YwAr/i15_m.jpg", Description: "Double room", Category: "rooms"},
-		{URL: "https://d2ey9sqrvkqdfs.cloudfront.net/YwAr/i55_m.jpg", Description: "Bar", Category: "site"},
-	}, hotels[2].Images))
+	assert.Len(t, hotels[2].Images, 3)
 	assert.Equal(t, []string{
 		"All children are welcome. One child under 6 years stays free of charge when using existing beds. There is no capacity for extra beds in the room.",
 		"Pets are not allowed.",

@@ -11,3 +11,8 @@ api:
 docker:
 	docker build -t test-server .
 	docker run --rm -p 80:80 test-server
+
+.PHONY: test
+test:
+# test with coverage
+	go test -v -cover ./...
