@@ -53,3 +53,9 @@ $ curl "http://localhost:80/v1/hotels?ids=f8c9&ids=iJhz"
 ```
 $ curl "http://localhost:80/v1/hotels?destination=1122"
 ```
+
+## Run tests
+
+```
+$ make test
+```
