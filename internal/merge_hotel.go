@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/agext/levenshtein"
 	"github.com/choonhong/hotel-data-merge/ent"
 	"github.com/choonhong/hotel-data-merge/ent/schema"
+	"github.com/choonhong/hotel-data-merge/utils"
 )
 
 type HotelService struct {
@@ -28,6 +28,8 @@ func (s *HotelService) FetchAndMergeHotels(ctx context.Context) ([]*ent.Hotel, e
 		return nil, fmt.Errorf("mergeHotels: %w", err)
 	}
 
+	fmt.Println("Saving merged hotels...")
+
 	// Save merged hotels
 	for _, hotel := range hotels {
 		fmt.Println("Merged hotel " + hotel.ID)
@@ -36,6 +38,8 @@ func (s *HotelService) FetchAndMergeHotels(ctx context.Context) ([]*ent.Hotel, e
 			return nil, fmt.Errorf("Save: %w", err)
 		}
 	}
+
+	fmt.Println("Fetch and merge hotels completed.")
 
 	return hotels, nil
 }
@@ -99,8 +103,8 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*ent.Hotel) ([]*ent.Hot
 			if hotel.Latitude != nil {
 				latitudes = append(latitudes, *hotel.Latitude)
 			}
-			if hotel.Latitude != nil {
-				longitudes = append(longitudes, *hotel.Latitude)
+			if hotel.Longitude != nil {
+				longitudes = append(longitudes, *hotel.Longitude)
 			}
 			if hotel.City != "" {
 				cities = append(cities, hotel.City)
@@ -148,26 +152,26 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*ent.Hotel) ([]*ent.Hot
 		mergedHotel := &ent.Hotel{
 			ID:                hotels[0].ID,
 			DestinationID:     hotels[0].DestinationID,
-			Name:              FindMostAverageString(names),
+			Name:              utils.FindMostAverageString(names),
 			Address:           longestAddress,
-			City:              FindMostAverageString(cities),
-			Country:           FindMostAverageString(countries),
-			PostalCode:        FindMostAverageString(postalCodes),
+			City:              utils.FindMostAverageString(cities),
+			Country:           utils.FindMostAverageString(countries),
+			PostalCode:        utils.FindMostAverageString(postalCodes),
 			Description:       description,
-			Amenities:         getUniqueStrings(amenities),
+			Amenities:         utils.GetUniqueStrings(amenities),
 			Images:            mergedImages,
 			BookingConditions: mergedBookingConditions,
 		}
 
 		// Calculate average latitude
 		if len(latitudes) > 0 {
-			average := calculateAverage(latitudes)
+			average := utils.CalculateAverage(latitudes)
 			mergedHotel.Latitude = &average
 		}
 
 		// Calculate average longitude
 		if len(longitudes) > 0 {
-			average := calculateAverage(longitudes)
+			average := utils.CalculateAverage(longitudes)
 			mergedHotel.Longitude = &average
 		}
 
@@ -175,66 +179,4 @@ func (s *HotelService) mergeHotels(hotelMap map[string][]*ent.Hotel) ([]*ent.Hot
 	}
 
 	return unifiedHotels, nil
-}
-
-// FindMostAverageString combines multiple strings into one, returning the most average string
-func FindMostAverageString(strs []string) string {
-	if len(strs) == 0 {
-		return ""
-	}
-
-	minTotalDistance := len(strs[0]) * len(strs) * 100
-	averageString := ""
-
-	for _, str1 := range strs {
-		totalDistance := 0
-
-		for _, str2 := range strs {
-			if str1 != str2 {
-				totalDistance += levenshtein.Distance(str1, str2, nil)
-			}
-		}
-
-		// all strings are the same
-		if totalDistance == 0 {
-			return str1
-		}
-
-		if totalDistance < minTotalDistance || (totalDistance == minTotalDistance && len(str1) > len(averageString)) {
-			minTotalDistance = totalDistance
-			averageString = str1
-		}
-	}
-
-	return averageString
-}
-
-// return a list of unique strings where levenshtein distance is < 3
-func getUniqueStrings(strs []string) []string {
-	uniqueStrs := []string{}
-
-	for _, str1 := range strs {
-		unique := true
-
-		for _, str2 := range uniqueStrs {
-			if levenshtein.Distance(str1, str2, nil) < 3 {
-				unique = false
-				break
-			}
-		}
-
-		if unique {
-			uniqueStrs = append(uniqueStrs, str1)
-		}
-	}
-
-	return uniqueStrs
-}
-
-func calculateAverage(list []float64) float64 {
-	total := 0.0
-	for _, num := range list {
-		total += num
-	}
-	return total / float64(len(list))
 }

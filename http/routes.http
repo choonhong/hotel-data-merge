@@ -1,0 +1,17 @@
+@apiUrl = http://localhost:80
+
+###
+# Get all hotels
+GET {{apiUrl}}/v1/hotels
+
+###
+# Get hotels by ids
+GET {{apiUrl}}/v1/hotels?ids=f8c9&ids=iJhz
+
+###
+# Get hotels by destination
+GET {{apiUrl}}/v1/hotels?destination=1122
+
+###
+# Get hotels by destination and ids
+GET {{apiUrl}}/v1/hotels?destination=1122&ids=f8c9

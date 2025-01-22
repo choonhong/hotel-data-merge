@@ -1,5 +1,5 @@
-.PHONY: generate
-generate:
+.PHONY: ent
+ent:
 	go generate ./ent
 
 .PHONY: api
