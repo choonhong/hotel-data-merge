@@ -22,7 +22,7 @@ $ make ent
 $ make docker
 ```
 
-## Call the endpoints
+## Make requests
 
 1. Get all hotels
 ```
