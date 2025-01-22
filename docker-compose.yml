@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  app:
+    image: hotel-data-merge:test
+    build:
+      context: ./
+      dockerfile: ./test.Dockerfile
+    deploy:
+      restart_policy:
+        condition: none
+    command: "make test"

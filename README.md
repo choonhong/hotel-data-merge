@@ -56,6 +56,12 @@ $ curl "http://localhost:80/v1/hotels?destination=1122"
 
 ## Run tests
 
+To run tests on local
 ```
 $ make test
+```
+
+To run tests on docker
+```
+$ docker compose up
 ```
