@@ -19,8 +19,7 @@ $ make ent
 ## Run on docker
 
 ```
-$ docker build -t test-server .
-$ docker run --rm -p 80:80 test-server
+$ make docker
 ```
 
 ## Call the endpoints
