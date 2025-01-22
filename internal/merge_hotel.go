@@ -65,117 +65,138 @@ func (s *HotelService) fetchHotels(ctx context.Context) ([]*ent.Hotel, error) {
 func MergeHotels(hotels []*ent.Hotel) map[string]*ent.Hotel {
 	log.Println("Merging hotels...")
 
-	hotelMap := map[string][]*ent.Hotel{}
-	for _, hotel := range hotels {
-		if _, ok := hotelMap[hotel.ID]; !ok {
-			hotelMap[hotel.ID] = []*ent.Hotel{}
-		}
-		hotelMap[hotel.ID] = append(hotelMap[hotel.ID], hotel)
-	}
-
+	hotelMap := groupHotelsByID(hotels)
 	unifiedHotels := map[string]*ent.Hotel{}
 
 	// Merge hotels with the same ID
-	for _, hotels := range hotelMap {
-		if len(hotels) == 1 {
-			unifiedHotels[hotels[0].ID] = hotels[0]
-			continue
-		}
-
-		// Prepare data for merging
-		names := []string{}
-		latitudes := []float64{}
-		longitudes := []float64{}
-		longestAddress := ""
-		cities := []string{}
-		countries := []string{}
-		postalCodes := []string{}
-		description := ""
-		amenities := []string{}
-		uniqueImages := map[string]schema.Image{}
-		uniqueBookingConditions := map[string]bool{}
-
-		for _, hotel := range hotels {
-			if hotel.Name != "" {
-				names = append(names, hotel.Name)
-			}
-			if hotel.Latitude != nil {
-				latitudes = append(latitudes, *hotel.Latitude)
-			}
-			if hotel.Longitude != nil {
-				longitudes = append(longitudes, *hotel.Longitude)
-			}
-			if hotel.City != "" {
-				cities = append(cities, hotel.City)
-			}
-			if hotel.Country != "" {
-				countries = append(countries, hotel.Country)
-			}
-			if hotel.PostalCode != "" {
-				postalCodes = append(postalCodes, hotel.PostalCode)
-			}
-			amenities = append(amenities, hotel.Amenities...)
-
-			// Find the longest address
-			if len(hotel.Address) > len(longestAddress) {
-				longestAddress = hotel.Address
-			}
-
-			// Combine descriptions
-			description += hotel.Description
-
-			// Combine images
-			for _, image := range hotel.Images {
-				uniqueImages[image.URL] = image
-			}
-
-			// Combine booking conditions
-			for _, condition := range hotel.BookingConditions {
-				uniqueBookingConditions[condition] = true
-			}
-		}
-
-		// Merge image by URL
-		mergedImages := []schema.Image{}
-		for _, image := range uniqueImages {
-			mergedImages = append(mergedImages, image)
-		}
-
-		// Merge booking conditions by uniqueness
-		mergedBookingConditions := []string{}
-		for condition := range uniqueBookingConditions {
-			mergedBookingConditions = append(mergedBookingConditions, condition)
-		}
-
-		// Merge hotels with the same ID
-		mergedHotel := &ent.Hotel{
-			ID:                hotels[0].ID,
-			DestinationID:     hotels[0].DestinationID,
-			Name:              utils.FindMostRepresentativeString(names),
-			Address:           longestAddress,
-			City:              utils.FindMostRepresentativeString(cities),
-			Country:           utils.FindMostRepresentativeString(countries),
-			PostalCode:        utils.FindMostRepresentativeString(postalCodes),
-			Description:       description,
-			Amenities:         utils.RemoveSimilarAndSubstrings(amenities),
-			Images:            mergedImages,
-			BookingConditions: mergedBookingConditions,
-		}
-
-		// Calculate average latitude
-		if len(latitudes) > 0 {
-			mergedHotel.Latitude = utils.CalculateAverage(latitudes)
-		}
-
-		// Calculate average longitude
-		if len(longitudes) > 0 {
-			mergedHotel.Longitude = utils.CalculateAverage(longitudes)
-		}
-
-		unifiedHotels[mergedHotel.ID] = mergedHotel
-
-		log.Println("Merged hotel", mergedHotel.ID)
+	for hotelID, hotels := range hotelMap {
+		unifiedHotels[hotelID] = mergeHotelGroup(hotels)
 	}
 
 	return unifiedHotels
+}
+
+func groupHotelsByID(hotels []*ent.Hotel) map[string][]*ent.Hotel {
+	hotelMap := map[string][]*ent.Hotel{}
+	for _, hotel := range hotels {
+		hotelMap[hotel.ID] = append(hotelMap[hotel.ID], hotel)
+	}
+	return hotelMap
+}
+
+func mergeHotelGroup(hotels []*ent.Hotel) *ent.Hotel {
+	if len(hotels) == 1 {
+		return hotels[0]
+	}
+
+	hotelData := collectHotelData(hotels)
+
+	mergedHotel := &ent.Hotel{
+		ID:                hotels[0].ID,
+		DestinationID:     hotels[0].DestinationID,
+		Name:              utils.FindMostRepresentativeString(hotelData.names),
+		Address:           findLongestAddress(hotels),
+		City:              utils.FindMostRepresentativeString(hotelData.cities),
+		Country:           utils.FindMostRepresentativeString(hotelData.countries),
+		PostalCode:        utils.FindMostRepresentativeString(hotelData.postalCodes),
+		Description:       mergeDescriptions(hotels),
+		Amenities:         utils.RemoveSimilarAndSubstrings(hotelData.amenities),
+		Images:            mergeImages(hotelData.uniqueImages),
+		BookingConditions: mergeBookingConditions(hotelData.uniqueBookingConditions),
+	}
+
+	if len(hotelData.latitudes) > 0 {
+		mergedHotel.Latitude = utils.CalculateAverage(hotelData.latitudes)
+	}
+
+	if len(hotelData.longitudes) > 0 {
+		mergedHotel.Longitude = utils.CalculateAverage(hotelData.longitudes)
+	}
+
+	log.Println("Merged hotel", mergedHotel.ID)
+	return mergedHotel
+}
+
+// hotelData holds the collected data of the same hotel from different providers.
+type hotelData struct {
+	names                   []string
+	latitudes               []float64
+	longitudes              []float64
+	cities                  []string
+	countries               []string
+	postalCodes             []string
+	amenities               []string
+	uniqueImages            map[string]schema.Image
+	uniqueBookingConditions map[string]bool
+}
+
+func collectHotelData(hotels []*ent.Hotel) hotelData {
+	hotelData := hotelData{
+		uniqueImages:            map[string]schema.Image{},
+		uniqueBookingConditions: map[string]bool{},
+	}
+
+	for _, hotel := range hotels {
+		if hotel.Name != "" {
+			hotelData.names = append(hotelData.names, hotel.Name)
+		}
+		if hotel.Latitude != nil {
+			hotelData.latitudes = append(hotelData.latitudes, *hotel.Latitude)
+		}
+		if hotel.Longitude != nil {
+			hotelData.longitudes = append(hotelData.longitudes, *hotel.Longitude)
+		}
+		if hotel.City != "" {
+			hotelData.cities = append(hotelData.cities, hotel.City)
+		}
+		if hotel.Country != "" {
+			hotelData.countries = append(hotelData.countries, hotel.Country)
+		}
+		if hotel.PostalCode != "" {
+			hotelData.postalCodes = append(hotelData.postalCodes, hotel.PostalCode)
+		}
+		hotelData.amenities = append(hotelData.amenities, hotel.Amenities...)
+		for _, image := range hotel.Images {
+			hotelData.uniqueImages[image.URL] = image
+		}
+		for _, condition := range hotel.BookingConditions {
+			hotelData.uniqueBookingConditions[condition] = true
+		}
+	}
+
+	return hotelData
+}
+
+func findLongestAddress(hotels []*ent.Hotel) string {
+	longestAddress := ""
+	for _, hotel := range hotels {
+		if len(hotel.Address) > len(longestAddress) {
+			longestAddress = hotel.Address
+		}
+	}
+	return longestAddress
+}
+
+func mergeDescriptions(hotels []*ent.Hotel) string {
+	description := ""
+	for _, hotel := range hotels {
+		description += hotel.Description
+	}
+	return description
+}
+
+func mergeImages(uniqueImages map[string]schema.Image) []schema.Image {
+	mergedImages := []schema.Image{}
+	for _, image := range uniqueImages {
+		mergedImages = append(mergedImages, image)
+	}
+	return mergedImages
+}
+
+func mergeBookingConditions(uniqueBookingConditions map[string]bool) []string {
+	mergedBookingConditions := []string{}
+	for condition := range uniqueBookingConditions {
+		mergedBookingConditions = append(mergedBookingConditions, condition)
+	}
+	return mergedBookingConditions
 }
