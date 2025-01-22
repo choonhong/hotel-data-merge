@@ -8,13 +8,28 @@ It also serves endpoints to query the hotels data by hotel ids and destination.
 
 The data schema is defined in the `ent/schema/hotel.go` file. The data is provided in JSON format.
 
-This project uses the `ent` framework to define the data schema and generate the data model. It also provide code generation for the data model and migration.
+This project uses the [entgo.io](https://entgo.io/) framework to define the data schema and generate the data model. 
+It also provide code generation for CRUD API and migration code.
 
-After changing the schema, you need to run the following command to generate the data model and migration.
+After makeing change in the schema, run the following command to generate the data model and migration.
 
 ```
 $ make ent
 ```
+
+Generated code will be placed in the `ent` directory.
+
+## API definition
+
+The API provided by this project is defined in the `docs/swagger.yml` file.
+
+After making changes in the API, run the following command to generate the API handler and types code.
+
+```
+$ make api
+```
+
+Generated code will be placed in the `restapi` directory.
 
 ## Run on docker
 
