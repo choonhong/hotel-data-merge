@@ -31,6 +31,16 @@ $ make api
 
 Generated code will be placed in the `restapi` directory.
 
+## Mock interface
+
+The mock interfaces is generated using [mockery](https://github.com/vektra/mockery) tool.
+
+After making changes in the interface, run the following command to generate the mock interfaces.
+
+```
+$ mockery
+```
+
 ## Run on docker
 
 ```

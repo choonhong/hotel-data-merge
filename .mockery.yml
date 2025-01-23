@@ -1,0 +1,25 @@
+with-expecter: true
+packages:
+  github.com/choonhong/hotel-data-merge/internal:
+    interfaces:
+      HotelRepository:
+        config:
+          recursive: true
+          filename: hotel_repository.go
+          mockname: HotelRepository
+          dir: internal/mocks
+          outpkg: mocks
+      Provider:
+        config:
+          recursive: true
+          filename: provider.go
+          mockname: Provider
+          dir: internal/mocks
+          outpkg: mocks
+      Cache:
+        config:
+          recursive: true
+          filename: cache.go
+          mockname: Cache
+          dir: internal/mocks
+          outpkg: mocks

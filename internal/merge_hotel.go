@@ -11,8 +11,9 @@ import (
 )
 
 type HotelService struct {
-	HotelRepo HotelRepo
+	HotelRepo HotelRepository
 	Providers []Provider
+	Cache     Cache
 }
 
 // FetchAndMergeHotels fetches hotels from all providers and merges them into a single hotel list.

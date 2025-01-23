@@ -25,6 +25,10 @@ func main() {
 		log.Fatal("failed to connect to db:", err)
 	}
 
+	// create cache
+	cache := adapter.NewCache()
+	defer cache.Close()
+
 	// create hotel service
 	service := internal.HotelService{
 		HotelRepo: &adapter.HotelRepository{Client: db},
@@ -33,6 +37,7 @@ func main() {
 			&provider.Paperflies{URL: "https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/paperflies"},
 			&provider.Patagonia{URL: "https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/patagonia"},
 		},
+		Cache: cache,
 	}
 
 	// fetch hotel data on startup

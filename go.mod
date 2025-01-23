@@ -5,6 +5,7 @@ go 1.23.0
 require (
 	entgo.io/ent v0.14.1
 	github.com/agext/levenshtein v1.2.3
+	github.com/allegro/bigcache/v3 v3.1.0
 	github.com/go-chi/chi/v5 v5.2.0
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/oapi-codegen/runtime v1.1.1
@@ -22,6 +23,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/text v0.21.0 // indirect

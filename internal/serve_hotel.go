@@ -11,12 +11,24 @@ import (
 func (s *HotelService) GetHotels(w http.ResponseWriter, r *http.Request, params restapi.GetHotelsParams) {
 	log.Println("GetHotels", params)
 
+	// Check cache first
+	cachedHotels, err := s.Cache.Get(params)
+	if err == nil {
+		utils.ResponseHelper(w, cachedHotels, http.StatusOK)
+		return
+	}
+
+	// Fetch hotels from the database
 	hotels, err := s.HotelRepo.GetHotels(r.Context(), params.Ids, params.Destination)
 	if err != nil {
 		log.Println("Error fetching hotels:", err)
 		utils.ResponseHelper(w, err.Error(), http.StatusInternalServerError)
-
 		return
+	}
+
+	// Save to cache
+	if err := s.Cache.Set(params, hotels); err != nil {
+		log.Println("Error saving to cache:", err)
 	}
 
 	utils.ResponseHelper(w, hotels, http.StatusOK)
