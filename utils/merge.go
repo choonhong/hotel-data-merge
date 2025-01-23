@@ -21,14 +21,14 @@ func CalculateAverage(list []float64) *float64 {
 	return &average
 }
 
-// FindMostRepresentativeString finds the most average string from a list of strings.
+// FindMostRepresentativeString finds the most representative string from a list of strings.
 func FindMostRepresentativeString(strs []string) string {
 	if len(strs) == 0 {
 		return ""
 	}
 
 	minTotalDistance := len(strs[0]) * len(strs) * 100
-	averageString := ""
+	mostAverageString := ""
 
 	for _, str1 := range strs {
 		totalDistance := 0
@@ -44,17 +44,17 @@ func FindMostRepresentativeString(strs []string) string {
 			return str1
 		}
 
-		if totalDistance < minTotalDistance || (totalDistance == minTotalDistance && len(str1) > len(averageString)) {
+		if totalDistance < minTotalDistance || (totalDistance == minTotalDistance && len(str1) > len(mostAverageString)) {
 			minTotalDistance = totalDistance
-			averageString = str1
+			mostAverageString = str1
 		}
 	}
 
-	return averageString
+	return mostAverageString
 }
 
-// RemoveSimilarAndSubstrings return a list of unique strings where levenshtein distance is < 3 and not a substring of another string.
-func RemoveSimilarAndSubstrings(strs []string) []string {
+// DedupStrings removes similar strings from a list of strings.
+func DedupStrings(strs []string) []string {
 	uniqueStrs := []string{}
 
 	for _, str1 := range strs {

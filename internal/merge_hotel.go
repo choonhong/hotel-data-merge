@@ -105,7 +105,7 @@ func mergeHotelGroup(hotels []*ent.Hotel) *ent.Hotel {
 		Country:           utils.FindMostRepresentativeString(hotelData.countries),
 		PostalCode:        utils.FindMostRepresentativeString(hotelData.postalCodes),
 		Description:       mergeDescriptions(hotels),
-		Amenities:         utils.RemoveSimilarAndSubstrings(hotelData.amenities),
+		Amenities:         utils.DedupStrings(hotelData.amenities),
 		Images:            mergeImages(hotelData.uniqueImages),
 		BookingConditions: mergeBookingConditions(hotelData.uniqueBookingConditions),
 	}
