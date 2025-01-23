@@ -9,11 +9,12 @@ import (
 )
 
 func (s *HotelService) GetHotels(w http.ResponseWriter, r *http.Request, params restapi.GetHotelsParams) {
-	log.Println("GetHotels", params)
+	log.Println("Get hotels")
 
 	// Check cache first
 	cachedHotels, err := s.Cache.Get(params)
 	if err == nil {
+		log.Println("Get hotels from cache")
 		utils.ResponseHelper(w, cachedHotels, http.StatusOK)
 		return
 	}
