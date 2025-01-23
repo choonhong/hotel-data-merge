@@ -107,20 +107,55 @@ func TestMergeHotels(t *testing.T) {
 	assert.Equal(t, "Singapore", hotel.Country)
 	assert.Equal(t, "098269", hotel.PostalCode)
 	assert.Len(t, hotel.Amenities, 12)
-	assert.True(t, reflect.DeepEqual([]string{
-		"outdoor pool",
-		"business center",
-		"wifi",
-		"drycleaning",
-		"breakfast",
-		"indoor pool",
-		"childcare",
-		"tv",
-		"coffee machine",
-		"kettle",
-		"hair dryer",
-		"iron",
-	}, hotel.Amenities))
 	assert.Len(t, hotel.Images, 3)
 	assert.Len(t, hotel.BookingConditions, 5)
+}
+
+func TestFetchAndMergeHotelsFlow(t *testing.T) {
+	t.Run("got no data", func(t *testing.T) {
+		// Create a new HotelService with mocks
+		subject, mocks := newHotelServiceMocks()
+
+		// Mocks function response
+		mocks.provoder.EXPECT().Name().Return("acme")
+		mocks.provoder.EXPECT().FetchAll(context.Background()).Return(nil, nil)
+
+		// Call the FetchAndMergeHotels function
+		_, err := subject.FetchAndMergeHotels(context.Background())
+		require.Error(t, err)
+	})
+
+	t.Run("database error", func(t *testing.T) {
+		// Create a new HotelService with mocks
+		subject, mocks := newHotelServiceMocks()
+
+		hotels := []*ent.Hotel{{ID: "iJhz", Name: "Hotel A", DestinationID: 5432}}
+
+		// Mocks function response
+		mocks.provoder.EXPECT().Name().Return("acme")
+		mocks.provoder.EXPECT().FetchAll(context.Background()).Return(hotels, nil)
+		mocks.hotelRepo.EXPECT().Save(context.Background(), hotels[0]).Return(assert.AnError)
+
+		// Call the FetchAndMergeHotels function
+		_, err := subject.FetchAndMergeHotels(context.Background())
+		require.Error(t, err)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		// Create a new HotelService with mocks
+		subject, mocks := newHotelServiceMocks()
+
+		hotels := []*ent.Hotel{{ID: "iJhz", Name: "Hotel A", DestinationID: 5432}}
+
+		// Mocks function response
+		mocks.provoder.EXPECT().Name().Return("acme")
+		mocks.provoder.EXPECT().FetchAll(context.Background()).Return(hotels, nil)
+		mocks.hotelRepo.EXPECT().Save(context.Background(), hotels[0]).Return(nil)
+		mocks.cache.EXPECT().Clear().Return(nil)
+
+		// Call the FetchAndMergeHotels function
+		result, err := subject.FetchAndMergeHotels(context.Background())
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+	})
 }

@@ -19,9 +19,9 @@ type HotelService struct {
 // FetchAndMergeHotels fetches hotels from all providers and merges them into a single hotel list.
 func (s *HotelService) FetchAndMergeHotels(ctx context.Context) (map[string]*ent.Hotel, error) {
 	// Fetch hotels from all providers
-	allHotels, err := s.fetchHotels(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("fetchHotels: %w", err)
+	allHotels := s.fetchHotels(ctx)
+	if len(allHotels) == 0 {
+		return nil, fmt.Errorf("No hotels fetched")
 	}
 
 	// Merge hotel of the same ID
@@ -38,11 +38,15 @@ func (s *HotelService) FetchAndMergeHotels(ctx context.Context) (map[string]*ent
 
 	log.Println("Fetch and merge hotels completed.")
 
+	if err := s.Cache.Clear(); err != nil {
+		log.Println("Error clearing cache:", err)
+	}
+
 	return mergedHotels, nil
 }
 
 // fetchHotels fetches hotels from all providers and groups them by ID.
-func (s *HotelService) fetchHotels(ctx context.Context) ([]*ent.Hotel, error) {
+func (s *HotelService) fetchHotels(ctx context.Context) []*ent.Hotel {
 	allHotels := []*ent.Hotel{}
 
 	// Fetch hotels from all providers
@@ -59,7 +63,7 @@ func (s *HotelService) fetchHotels(ctx context.Context) ([]*ent.Hotel, error) {
 		allHotels = append(allHotels, hotels...)
 	}
 
-	return allHotels, nil
+	return allHotels
 }
 
 // MergeHotels merges hotels with the same ID into a single hotel list.

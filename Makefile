@@ -14,5 +14,4 @@ docker:
 
 .PHONY: test
 test:
-# test with coverage
 	go test -v -cover ./...

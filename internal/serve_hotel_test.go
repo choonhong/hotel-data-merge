@@ -123,16 +123,19 @@ func TestGetHotels(t *testing.T) {
 type hotelServiceMocks struct {
 	cache     *mocks.Cache
 	hotelRepo *mocks.HotelRepository
+	provoder  *mocks.Provider
 }
 
 func newHotelServiceMocks() (internal.HotelService, hotelServiceMocks) {
 	mocks := hotelServiceMocks{
 		cache:     &mocks.Cache{},
 		hotelRepo: &mocks.HotelRepository{},
+		provoder:  &mocks.Provider{},
 	}
 
 	return internal.HotelService{
 		HotelRepo: mocks.hotelRepo,
 		Cache:     mocks.cache,
+		Providers: []internal.Provider{mocks.provoder},
 	}, mocks
 }
