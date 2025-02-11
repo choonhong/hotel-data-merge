@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
+	"io"
 	"strings"
 
 	"github.com/choonhong/hotel-data-merge/ent"
@@ -12,7 +12,8 @@ import (
 )
 
 type Acme struct {
-	URL string
+	URL               string
+	FetchDataFunction func(ctx context.Context, url string) (io.ReadCloser, error)
 }
 
 func (a *Acme) Name() string {
@@ -52,22 +53,16 @@ func (d *AcmeData) ToHotel() *ent.Hotel {
 
 // FetchAll fetches all hotels from Acme API.
 func (a *Acme) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
-	// Call Acme API
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.URL, nil)
+	// Call data from Acme API
+	body, err := a.FetchDataFunction(ctx, a.URL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fetchDataFromURL: %w", err)
 	}
-
-	client := http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("Do: %w", err)
-	}
-	defer resp.Body.Close()
+	defer body.Close()
 
 	// Decode the response body
 	var data []*AcmeData
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+	if err := json.NewDecoder(body).Decode(&data); err != nil {
 		return nil, fmt.Errorf("Decode: %w", err)
 	}
 

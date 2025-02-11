@@ -10,7 +10,10 @@ import (
 )
 
 func TestAcme(t *testing.T) {
-	subject := provider.Acme{URL: "https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/acme"}
+	subject := provider.Acme{
+		URL:               "https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/acme",
+		FetchDataFunction: provider.FetchDataFromURL,
+	}
 
 	hotels, err := subject.FetchAll(context.Background())
 	require.NoError(t, err)

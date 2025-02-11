@@ -33,7 +33,10 @@ func main() {
 	service := internal.HotelService{
 		HotelRepo: &adapter.HotelRepository{Client: db},
 		Providers: []internal.Provider{
-			&provider.Acme{URL: "https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/acme"},
+			&provider.Acme{
+				URL:               "https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/acme",
+				FetchDataFunction: provider.FetchDataFromURL,
+			},
 			&provider.Paperflies{URL: "https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/paperflies"},
 			&provider.Patagonia{URL: "https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/patagonia"},
 		},

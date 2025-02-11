@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/choonhong/hotel-data-merge/ent"
@@ -71,21 +70,15 @@ func (d *PaperfliesData) ToHotel() *ent.Hotel {
 // FetchAll fetches all hotels from Paperflies API.
 func (p *Paperflies) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
 	// Call Paperflies API
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.URL, nil)
+	body, err := FetchDataFromURL(ctx, p.URL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fetchDataFromURL: %w", err)
 	}
-
-	client := http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("Do: %w", err)
-	}
-	defer resp.Body.Close()
+	defer body.Close()
 
 	// Decode the response body
 	var data []*PaperfliesData
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+	if err := json.NewDecoder(body).Decode(&data); err != nil {
 		return nil, fmt.Errorf("Decode: %w", err)
 	}
 

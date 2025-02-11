@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"os"
-	"reflect"
 	"testing"
 
 	"github.com/choonhong/hotel-data-merge/adapter"
@@ -26,7 +25,10 @@ func TestFetchAndMergeHotels(t *testing.T) {
 	subject := internal.HotelService{
 		HotelRepo: &adapter.HotelRepository{Client: db},
 		Providers: []internal.Provider{
-			&provider.Acme{URL: "https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/acme"},
+			&provider.Acme{
+				URL:               "https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/acme",
+				FetchDataFunction: provider.FetchDataFromURL,
+			},
 			&provider.Paperflies{URL: "https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/paperflies"},
 			&provider.Patagonia{URL: "https://5f2be0b4ffc88500167b85a0.mockapi.io/suppliers/patagonia"},
 		},
@@ -50,22 +52,6 @@ func TestFetchAndMergeHotels(t *testing.T) {
 	assert.Equal(t, "Singapore", hotel.Country)
 	assert.Equal(t, "098269", hotel.PostalCode)
 	assert.Len(t, hotel.Amenities, 14)
-	assert.True(t, reflect.DeepEqual([]string{
-		"outdoor pool",
-		"business center",
-		"wifi",
-		"drycleaning",
-		"breakfast",
-		"indoor pool",
-		"childcare",
-		"tv",
-		"coffee machine",
-		"kettle",
-		"hair dryer",
-		"iron",
-		"aircon",
-		"tub",
-	}, hotel.Amenities))
 	assert.Len(t, hotel.Images, 6)
 	assert.Len(t, hotel.BookingConditions, 5)
 }

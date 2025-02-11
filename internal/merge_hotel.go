@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/choonhong/hotel-data-merge/ent"
 	"github.com/choonhong/hotel-data-merge/ent/schema"
@@ -49,21 +50,59 @@ func (s *HotelService) FetchAndMergeHotels(ctx context.Context) (map[string]*ent
 func (s *HotelService) fetchHotels(ctx context.Context) []*ent.Hotel {
 	allHotels := []*ent.Hotel{}
 
+	c1 := make(chan []*ent.Hotel, len(s.Providers))
+	wg := sync.WaitGroup{}
+
 	// Fetch hotels from all providers
 	for _, provider := range s.Providers {
 		log.Println("Fetching hotels from", provider.Name())
 
-		hotels, err := provider.FetchAll(ctx)
-		if err != nil {
-			// Log error and continue to the next provider
-			log.Println("Error fetching hotels from", provider.Name(), ":", err)
-			continue
-		}
+		wg.Add(1)
 
-		allHotels = append(allHotels, hotels...)
+		go func() {
+			log.Println("Fetching hotels from", provider.Name())
+
+			hotels, err := provider.FetchAll(ctx)
+			if err != nil {
+				// Log error and continue to the next provider
+				log.Println("Error fetching hotels from", provider.Name(), ":", err)
+			}
+
+			c1 <- hotels
+
+			wg.Done()
+
+			log.Println("Closing routine for", provider.Name())
+		}()
 	}
 
+	// block until all routine is done
+	wg.Wait()
+
+	for range s.Providers {
+		hotels := <-c1
+		if hotels != nil {
+			allHotels = append(allHotels, hotels...)
+		}
+	}
+
+	close(c1)
+
 	return allHotels
+}
+
+func (s *HotelService) FetchHotelFromProvider(ctx context.Context, provider Provider) ([]*ent.Hotel, error) {
+	log.Println("Fetching hotels from", provider.Name())
+
+	hotels, err := provider.FetchAll(ctx)
+	if err != nil {
+		// Log error and continue to the next provider
+		log.Println("Error fetching hotels from", provider.Name(), ":", err)
+
+		return nil, nil
+	}
+
+	return hotels, nil
 }
 
 // MergeHotels merges hotels with the same ID into a single hotel list.

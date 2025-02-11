@@ -1,7 +1,11 @@
 package provider
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
 	"strconv"
 )
 
@@ -32,4 +36,19 @@ func (f *Float64OrString) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
+}
+
+func FetchDataFromURL(ctx context.Context, url string) (io.ReadCloser, error) {
+	// Call Acme API
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("NewRequestWithContext: %w", err)
+	}
+
+	client := http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("Do: %w", err)
+	}
+	return resp.Body, nil
 }

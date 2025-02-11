@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/choonhong/hotel-data-merge/ent"
@@ -63,21 +62,15 @@ func (p *PatagoniaData) ToHotel() *ent.Hotel {
 // FetchAll fetches all hotels from Patagonia API.
 func (p *Patagonia) FetchAll(ctx context.Context) ([]*ent.Hotel, error) {
 	// Call Patagonia API
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.URL, nil)
+	body, err := FetchDataFromURL(ctx, p.URL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fetchDataFromURL: %w", err)
 	}
-
-	client := http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("Do: %w", err)
-	}
-	defer resp.Body.Close()
+	defer body.Close()
 
 	// Decode the response body
 	var data []*PatagoniaData
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+	if err := json.NewDecoder(body).Decode(&data); err != nil {
 		return nil, fmt.Errorf("Decode: %w", err)
 	}
 
