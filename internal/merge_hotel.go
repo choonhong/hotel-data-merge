@@ -49,14 +49,10 @@ func (s *HotelService) FetchAndMergeHotels(ctx context.Context) (map[string]*ent
 // fetchHotels fetches hotels from all providers and groups them by ID.
 func (s *HotelService) fetchHotels(ctx context.Context) []*ent.Hotel {
 	allHotels := []*ent.Hotel{}
-
-	c1 := make(chan []*ent.Hotel, len(s.Providers))
 	wg := sync.WaitGroup{}
 
 	// Fetch hotels from all providers
 	for _, provider := range s.Providers {
-		log.Println("Fetching hotels from", provider.Name())
-
 		wg.Add(1)
 
 		go func() {
@@ -68,7 +64,7 @@ func (s *HotelService) fetchHotels(ctx context.Context) []*ent.Hotel {
 				log.Println("Error fetching hotels from", provider.Name(), ":", err)
 			}
 
-			c1 <- hotels
+			allHotels = append(allHotels, hotels...)
 
 			wg.Done()
 
@@ -78,15 +74,6 @@ func (s *HotelService) fetchHotels(ctx context.Context) []*ent.Hotel {
 
 	// block until all routine is done
 	wg.Wait()
-
-	for range s.Providers {
-		hotels := <-c1
-		if hotels != nil {
-			allHotels = append(allHotels, hotels...)
-		}
-	}
-
-	close(c1)
 
 	return allHotels
 }

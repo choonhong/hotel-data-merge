@@ -54,7 +54,7 @@ func TestGetHotels(t *testing.T) {
 
 		// Mocks function response
 		mocks.cache.EXPECT().Get(params).Return(nil, assert.AnError)
-		mocks.hotelRepo.EXPECT().GetHotels(r.Context(), &[]string{"iJhz"}, (*int)(nil)).Return(nil, assert.AnError)
+		mocks.hotelRepo.EXPECT().GetHotels(r.Context(), &[]string{"iJhz"}, (*[]int)(nil)).Return(nil, assert.AnError)
 
 		// Call the GetHotels function
 		subject.GetHotels(w, r, params)
@@ -77,7 +77,7 @@ func TestGetHotels(t *testing.T) {
 
 		// Mocks function response
 		mocks.cache.EXPECT().Get(params).Return(nil, assert.AnError)
-		mocks.hotelRepo.EXPECT().GetHotels(r.Context(), &[]string{"iJhz"}, (*int)(nil)).Return(hotels, nil)
+		mocks.hotelRepo.EXPECT().GetHotels(r.Context(), &[]string{"iJhz"}, (*[]int)(nil)).Return(hotels, nil)
 		mocks.cache.EXPECT().Set(params, hotels).Return(nil)
 
 		// Call the GetHotels function
@@ -105,7 +105,7 @@ func TestGetHotels(t *testing.T) {
 
 		// Mocks function response
 		mocks.cache.EXPECT().Get(params).Return(nil, assert.AnError)
-		mocks.hotelRepo.EXPECT().GetHotels(r.Context(), &[]string{"iJhz"}, (*int)(nil)).Return(hotels, nil)
+		mocks.hotelRepo.EXPECT().GetHotels(r.Context(), &[]string{"iJhz"}, (*[]int)(nil)).Return(hotels, nil)
 		mocks.cache.EXPECT().Set(params, hotels).Return(assert.AnError)
 
 		// Call the GetHotels function
