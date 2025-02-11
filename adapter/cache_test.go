@@ -52,7 +52,7 @@ func TestCache(t *testing.T) {
 	t.Run("Query with destination", func(t *testing.T) {
 		cache := adapter.NewCache()
 		destination := 1
-		params := restapi.GetHotelsParams{Destination: &destination}
+		params := restapi.GetHotelsParams{Destination: &[]int{destination}}
 		hotels := []*ent.Hotel{
 			{ID: "1", Name: "Hotel A", DestinationID: 1},
 		}

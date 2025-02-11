@@ -36,7 +36,7 @@ func (h *HotelRepository) Save(ctx context.Context, hotels *ent.Hotel) error {
 	return create.OnConflict().UpdateNewValues().Exec(ctx)
 }
 
-func (h *HotelRepository) GetHotels(ctx context.Context, ids *[]string, destinationID *int) ([]*ent.Hotel, error) {
+func (h *HotelRepository) GetHotels(ctx context.Context, ids *[]string, destinationID *[]int) ([]*ent.Hotel, error) {
 	query := h.Client.Hotel.Query()
 
 	if ids != nil {
@@ -44,7 +44,7 @@ func (h *HotelRepository) GetHotels(ctx context.Context, ids *[]string, destinat
 	}
 
 	if destinationID != nil {
-		query = query.Where(hotel.DestinationIDEQ(*destinationID))
+		query = query.Where(hotel.DestinationIDIn(*destinationID...))
 	}
 
 	return query.All(ctx)

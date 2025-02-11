@@ -60,7 +60,7 @@ func TestGetHotels(t *testing.T) {
 	require.Len(t, hotels, 1)
 	require.Equal(t, "Hotel A", hotels[0].Name)
 
-	hotels, err = subject.GetHotels(context.Background(), nil, &hotel.DestinationID)
+	hotels, err = subject.GetHotels(context.Background(), nil, &[]int{hotel.DestinationID})
 	require.NoError(t, err)
 	require.Len(t, hotels, 2)
 	require.Equal(t, "Hotel A", hotels[0].Name)
@@ -72,7 +72,7 @@ func TestGetHotels(t *testing.T) {
 	require.Equal(t, "Hotel A", hotels[0].Name)
 	require.Equal(t, "Hotel B", hotels[1].Name)
 
-	hotels, err = subject.GetHotels(context.Background(), &[]string{"1", "2"}, &hotel.DestinationID)
+	hotels, err = subject.GetHotels(context.Background(), &[]string{"1", "2"}, &[]int{hotel.DestinationID})
 	require.NoError(t, err)
 	require.Len(t, hotels, 1)
 	require.Equal(t, "Hotel A", hotels[0].Name)

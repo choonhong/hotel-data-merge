@@ -14,8 +14,8 @@ type Hotel struct {
 	DestinationId     int      `json:"destinationId"`
 	Id                string   `json:"id"`
 	Images            []Image  `json:"images"`
-	Latitude          *float64 `json:"latitude,omitempty"`
-	Longitude         *float64 `json:"longitude,omitempty"`
+	Latitude          *float32 `json:"latitude,omitempty"`
+	Longitude         *float32 `json:"longitude,omitempty"`
 	Name              string   `json:"name"`
 	PostalCode        string   `json:"postalCode"`
 }
@@ -33,5 +33,5 @@ type Image struct {
 // GetHotelsParams defines parameters for GetHotels.
 type GetHotelsParams struct {
 	Ids         *[]string `form:"ids,omitempty" json:"ids,omitempty"`
-	Destination *int      `form:"destination,omitempty" json:"destination,omitempty"`
+	Destination *[]int    `form:"destination,omitempty" json:"destination,omitempty"`
 }

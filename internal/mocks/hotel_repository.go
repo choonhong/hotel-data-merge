@@ -24,7 +24,7 @@ func (_m *HotelRepository) EXPECT() *HotelRepository_Expecter {
 }
 
 // GetHotels provides a mock function with given fields: ctx, ids, destinationID
-func (_m *HotelRepository) GetHotels(ctx context.Context, ids *[]string, destinationID *int) ([]*ent.Hotel, error) {
+func (_m *HotelRepository) GetHotels(ctx context.Context, ids *[]string, destinationID *[]int) ([]*ent.Hotel, error) {
 	ret := _m.Called(ctx, ids, destinationID)
 
 	if len(ret) == 0 {
@@ -33,10 +33,10 @@ func (_m *HotelRepository) GetHotels(ctx context.Context, ids *[]string, destina
 
 	var r0 []*ent.Hotel
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *[]string, *int) ([]*ent.Hotel, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *[]string, *[]int) ([]*ent.Hotel, error)); ok {
 		return rf(ctx, ids, destinationID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *[]string, *int) []*ent.Hotel); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *[]string, *[]int) []*ent.Hotel); ok {
 		r0 = rf(ctx, ids, destinationID)
 	} else {
 		if ret.Get(0) != nil {
@@ -44,7 +44,7 @@ func (_m *HotelRepository) GetHotels(ctx context.Context, ids *[]string, destina
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *[]string, *int) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *[]string, *[]int) error); ok {
 		r1 = rf(ctx, ids, destinationID)
 	} else {
 		r1 = ret.Error(1)
@@ -61,14 +61,14 @@ type HotelRepository_GetHotels_Call struct {
 // GetHotels is a helper method to define mock.On call
 //   - ctx context.Context
 //   - ids *[]string
-//   - destinationID *int
+//   - destinationID *[]int
 func (_e *HotelRepository_Expecter) GetHotels(ctx interface{}, ids interface{}, destinationID interface{}) *HotelRepository_GetHotels_Call {
 	return &HotelRepository_GetHotels_Call{Call: _e.mock.On("GetHotels", ctx, ids, destinationID)}
 }
 
-func (_c *HotelRepository_GetHotels_Call) Run(run func(ctx context.Context, ids *[]string, destinationID *int)) *HotelRepository_GetHotels_Call {
+func (_c *HotelRepository_GetHotels_Call) Run(run func(ctx context.Context, ids *[]string, destinationID *[]int)) *HotelRepository_GetHotels_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*[]string), args[2].(*int))
+		run(args[0].(context.Context), args[1].(*[]string), args[2].(*[]int))
 	})
 	return _c
 }
@@ -78,7 +78,7 @@ func (_c *HotelRepository_GetHotels_Call) Return(_a0 []*ent.Hotel, _a1 error) *H
 	return _c
 }
 
-func (_c *HotelRepository_GetHotels_Call) RunAndReturn(run func(context.Context, *[]string, *int) ([]*ent.Hotel, error)) *HotelRepository_GetHotels_Call {
+func (_c *HotelRepository_GetHotels_Call) RunAndReturn(run func(context.Context, *[]string, *[]int) ([]*ent.Hotel, error)) *HotelRepository_GetHotels_Call {
 	_c.Call.Return(run)
 	return _c
 }

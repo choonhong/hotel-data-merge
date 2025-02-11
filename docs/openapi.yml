@@ -23,7 +23,9 @@ paths:
         - in: query
           name: destination
           schema:
-            type: integer
+            type: array
+            items:
+              type: integer
       responses:
         '200':
           description: get hotel details successfully 
