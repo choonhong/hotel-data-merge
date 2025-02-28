@@ -23,7 +23,7 @@ func NewCache() *Cache {
 	return &Cache{cache}
 }
 
-func (c *Cache) Get(v interface{}) ([]*ent.Hotel, error) {
+func (c *Cache) Get(v any) ([]*ent.Hotel, error) {
 	key, err := json.Marshal(v)
 	if err != nil {
 		return nil, fmt.Errorf("json.Marshal params: %w", err)
@@ -42,7 +42,7 @@ func (c *Cache) Get(v interface{}) ([]*ent.Hotel, error) {
 	return hotels, nil
 }
 
-func (c *Cache) Set(v interface{}, hotels []*ent.Hotel) error {
+func (c *Cache) Set(v any, hotels []*ent.Hotel) error {
 	key, err := json.Marshal(v)
 	if err != nil {
 		return fmt.Errorf("json.Marshal params: %w", err)
